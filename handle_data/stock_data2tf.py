@@ -39,18 +39,59 @@ def serialize_example(features):
     example_proto = tf.train.Example(features=tf.train.Features(feature=features))
     return example_proto.SerializeToString()
 
-
-codes = pro_get_all_codes()
-
-
-
-
-
-
-
-def stock_data_convert_tf(filename):
-    # Write the `tf.Example` observations to the file.
+def stock_data_convert_tf(filename,step=30):
     with tf.python_io.TFRecordWriter(filename) as writer:
         for code in pro_get_all_codes():
             metric_data = metric_calculator(code)
-            
+            metric_data.drop(["trade_date"], axis=1, inplace=True)
+            list_values = metric_data.values[19:].astype(np.float32)
+            list_len = len(list_values)
+
+            for index in range(list_len):
+                start = index
+                end = index + step
+                if end<=list_len:
+                    window_value = list_values[start:end]
+                    value_bytes = window_value.tostring()
+                    labels_bytes = window_value[:, 1].tostring()
+                    features = {
+                        "stock_feature": _bytes_feature(value_bytes),
+                        "label": _bytes_feature(labels_bytes)
+
+                    }
+                    serialize_data = serialize_example(features)
+                    writer.write(serialize_data)
+
+
+
+if __name__ == '__main__':
+    import numpy as np
+    stock_data_convert_tf("stock_tf.tfrecode")
+    # codes = pro_get_all_codes()
+    # for code in codes:
+    #     print(code)
+    #     metric_data = metric_calculator(code)
+    #     metric_data.drop(["trade_date"], axis=1, inplace=True)
+    #     vs = metric_data.values[18:].astype(np.float32)
+    #     step = 20
+    #     filename = "test.tf"
+    #     for index in range(len(vs)):
+    #         if((step+index)<=len(vs)):
+    #             window_value = vs[index:index+step]
+    #             print(window_value)
+    #             print(window_value.shape)
+    #             value_bytes = window_value.tostring()
+    #             labels_bytes = window_value[:, 1].tostring()
+    #             print(value_bytes)
+    #             features = {
+    #                 "stock_feature": _bytes_feature(value_bytes),
+    #                 "label": _bytes_feature(labels_bytes)
+    #
+    #             }
+    #             serialize_data = serialize_example(features)
+    #             with tf.python_io.TFRecordWriter(filename) as writer:
+    #                 writer.write(serialize_data)
+    #             break
+    #
+    #     break
+
