@@ -44,8 +44,11 @@ class GetBatchData():
 
 if __name__ == '__main__':
     fn = GetBatchData(10,10,5)
-    from stock_lstm_model import StockModel
-    model = StockModel(200,3,10,10,1000)
+    #from stock_lstm_model import StockModel
+    #model = StockModel(200,3,10,10,1000)
     batches = fn.getBatch()
-    model.train(batches)
+    print(batches[0].label)
+    print(batches[0].input_data)
+    print(batches[0].input_len)
+    #model.train(batches)
 
